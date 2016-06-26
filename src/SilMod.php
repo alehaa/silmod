@@ -68,7 +68,7 @@ class SilMod extends Silex\Application
 
 		/* If paths is not an array, throw an invalid argument exception. */
 		if (!is_array($paths))
-			throw new InvalidArgumentException('load_modules method only '.
+			throw new \InvalidArgumentException('load_modules method only '.
 				'accepts string and array of string as argument.');
 
 
@@ -77,7 +77,7 @@ class SilMod extends Silex\Application
 		$app = $this;
 		foreach ($paths as $path) {
 			if (!is_dir($path))
-				throw new LogicException('Path \'$path\' does not exist.');
+				throw new \LogicException('Path \'$path\' does not exist.');
 
 			foreach (glob($path.'/*.php') as $file)
 				require_once $file;

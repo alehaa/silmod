@@ -1,6 +1,6 @@
 # SilMod
 
-[![](https://img.shields.io/github/issues-raw/alehaa/silmod.svg?style=flat-square)](https://github.com/alehaa/silmod/issues) [![GPL license](http://img.shields.io/badge/license-LGPL-blue.svg?style=flat-square)](http://www.gnu.org/licenses/)
+[![](https://img.shields.io/github/issues-raw/mksec/silmod.svg?style=flat-square)](https://github.com/mksec/silmod/issues) [![GPL license](http://img.shields.io/badge/license-LGPL-blue.svg?style=flat-square)](http://www.gnu.org/licenses/)
 
 Module proxy for [Silex](http://silex.sensiolabs.org/).
 
@@ -12,6 +12,24 @@ To get an easy to configure and extensible interface for some modules, SilMod sh
 The motivation for this was to merge different administration applications in a central application with the ability to extend the code for the users needs and decrease the maintenance and developement overhead. [Silex](http://silex.sensiolabs.org/) and other [Symfony](https://symfony.com/) components provide a nice interface to decrease the development overhead, but whenever you'd like to add a second module, you have to integrate it by hand in your code. SilMod provides a tiny wrapper arround Silex to load and integrate a set of modules.
 
 
+## Installation
+
+Install SilMod via ``composer.json``:
+
+```json
+{
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/mksec/silmod"
+        }
+    ],
+    "require": {
+        "mksec/silmod": "~1.0"
+    }
+}
+```
+
 ## Usage
 
 A new SilMod application can be built as easy as a Silex application:
@@ -19,7 +37,6 @@ A new SilMod application can be built as easy as a Silex application:
 <?php
 
 require_once "vendor/autoload.php";
-require_once "src/silmod.php";
 
 $app = new SilMod\SilMod(
 	array('twig.path' => __DIR__.'/templates'), // twig options as for Silex
@@ -71,7 +88,7 @@ $app->mount("/hello", $routes);
 
 Anyone is welcome to contribute. Simply fork this repository, make your changes **in an own branch** and create a pull-request for your change. Please do only one change per pull-request.
 
-You found a bug? Please fill out an [issue](https://github.com/alehaa/silmod/issues) and include any data to reproduce the bug.
+You found a bug? Please fill out an [issue](https://github.com/mksec/silmod/issues) and include any data to reproduce the bug.
 
 #### Contributors
 
