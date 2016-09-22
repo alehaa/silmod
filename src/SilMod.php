@@ -79,7 +79,7 @@ class SilMod extends Silex\Application
 			if (!is_dir($path))
 				throw new \LogicException('Path \'$path\' does not exist.');
 
-			foreach (glob($path.'/*.php') as $file)
+			foreach (glob($path.'{/*,}/autoload.php', GLOB_BRACE) as $file)
 				require_once $file;
 		}
 

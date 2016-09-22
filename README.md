@@ -57,7 +57,7 @@ $app->run();
 
 ## Modules
 
-Each PHP file in the defined module paths will be included as it is. The ``$app`` variable will be provided to access the SilMod instance. Each module must call the ``register_module`` function of ``$app`` to register itself. An additional callback function may be defined, which will be called after all modules have been loaded. This may be used to call functions defined by other modules (e.g. A is a backend for B). The Silex routing can be defined directly via ``$app``.
+Each file called `autoload.php` in the module path or the first level subdirectories will be included. The `$app` variable will be provided to access the SilMod instance. Each module must call the `register_module` function of `$app` to register itself. An additional callback function may be defined, which will be called after all modules have been loaded. This may be used to call functions defined by other modules (e.g. A is a backend for B). The Silex routing can be defined directly via ``$app``.
 
 ```php
 <?php
