@@ -101,6 +101,23 @@ class SilMod extends Silex\Application
 	{
 		$this->modules[] = ["name" => $name, "callback" => $callback];
 	}
+
+
+	/** \brief Add routes to global silex routing.
+	 *
+	 * \details This function calls \p function, which will define routes. All
+	 *  defined routes will be mounted to the \p name subdomain.
+	 *
+	 *
+	 * \param name Module name.
+	 * \param callback Function to be called to register the modules routes.
+	 */
+	public function register_routes($name, $callback)
+	{
+		$subapp = $this['controllers_factory'];
+		$callback($subapp);
+		$this->mount("/".$name, $subapp);
+	}
 }
 
 ?>

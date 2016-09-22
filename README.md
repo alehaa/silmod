@@ -57,30 +57,45 @@ $app->run();
 
 ## Modules
 
-Each file called `autoload.php` in the module path or the first level subdirectories will be included. The `$app` variable will be provided to access the SilMod instance. Each module must call the `register_module` function of `$app` to register itself. An additional callback function may be defined, which will be called after all modules have been loaded. This may be used to call functions defined by other modules (e.g. A is a backend for B). The Silex routing can be defined directly via ``$app``.
+Each file called `autoload.php` in the module path or the first level subdirectories will be included. If your module path is `modules`, your directory structure may look like:
+
+```
+modules
+  A
+    autoload.php   # Will be included.
+  B
+    helper.php
+    autoload.php   # Will be included.
+composer.json
+index.php
+```
+
+The `$app` variable will be provided to access the SilMod instance. To register your modules capabilities to the core instance, you should use the following functions:
+
+#### `register_module($name, $callback)`
+
+This function must be called by each module once, to register the module. An additional callback function may be defined, which will be called after all modules have been loaded. This may be used to call functions defined by other modules (e.g. A is a backend for B).
 
 ```php
-<?php
-
-// Register module.
 $app->register_module("test", function () {
 	echo "Callback called\n";
 });
+```
 
+#### `register_routes($name, $callback)`
 
-// add routes
-$routes = $app['controllers_factory'];
+Add your Silex routes with this function as you would do without. All routes will be mounted in `/$name`.
 
-$routes->get("/", function () use ($app) {
-		return $app['twig']->render('test.twig', array("A" => "B"));
+```php
+$app->register_routes("test", function($app) {
+	$app->get("/", function () {
+		return "hello\n";
 	});
-$routes->get("/world", function () use ($app) {
+
+	$app->get("/world", function () {
 		return "hello world!\n";
 	});
-
-$app->mount("/hello", $routes);
-
-?>
+});
 ```
 
 
