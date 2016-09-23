@@ -38,9 +38,12 @@ A new SilMod application can be built as easy as a Silex application:
 
 require_once "vendor/autoload.php";
 
-$app = new SilMod\SilMod(
-	array('twig.path' => __DIR__.'/templates'), // twig options as for Silex
-	array(__DIR__.'/modules')                   // paths to your modules
+$app = new SilMod\SilMod(array(
+	'theme' => 'default',    // the theme to be used
+	'modules.path' => array( // paths to your modules
+		'modules',
+		'externals/3rdparty'
+	)
 );
 
 // Need some gobal variables in your templates? Define them as in Silex:

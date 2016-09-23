@@ -37,15 +37,27 @@ class SilMod extends Silex\Application
 	private $modules = array();
 
 
-	function __construct($twig_options, $module_paths = null)
+	function __construct($options = array())
 	{
 		parent::__construct();
 
+
+		/* Set default options. */
+		if (!isset($options['theme']))
+			$options['theme'] = 'default';
+
+		if (!isset($options['modules.path']))
+			$options['modules.path'] = array();
+		else if (is_string($options['modules.path']))
+			$options['modules.path'] = array($options['modules.path']);
+
+
 		/* Initialize Twig service. */
 		$this->register(new Silex\Provider\TwigServiceProvider(),
-		                $twig_options);
+		                array('twig.path' => $this->twig_paths($options)));
 
-		$this->load_modules($module_paths);
+		/* Load all modules. */
+		$this->load_modules($options['modules.path']);
 	}
 
 
@@ -87,6 +99,38 @@ class SilMod extends Silex\Application
 		foreach ($this->modules as $module)
 			if ($module["callback"] != null)
 				$module["callback"]();
+	}
+
+
+	/** \brief Get all template paths for twig.
+	 *
+	 * \details This function gathers all paths to use for twig to find
+	 *  templates. It will use the module paths and defined options from the
+	 *  constructor and return an array of paths.
+	 *
+	 *
+	 * \param options Options passed from the constructor.
+	 *
+	 * \return Array of paths.
+	 */
+	private function twig_paths($options)
+	{
+		/* Add the template path as first path, so every view in the template
+		 * directory may override the module specific view. This may be used to
+		 * enhance a view for some themes. */
+		$paths = array('themes/'.$options['theme'].'/views');
+
+		/* Iterate over all module paths to append the module specific view
+		 * paths. */
+		foreach ($options['modules.path'] as $path) {
+			if (!is_dir($path))
+				throw new \LogicException("Path \'$path\' does not exist.");
+
+			foreach (glob($path.'{/*,}/views', GLOB_BRACE) as $p)
+				$paths[] = $p;
+		}
+
+		return $paths;
 	}
 
 
