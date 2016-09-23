@@ -90,13 +90,13 @@ $app->register_module("test", function () {
 Add your Silex routes with this function as you would do without. All routes will be mounted in `/$name`.
 
 ```php
-$app->register_routes("test", function($app) {
-	$app->get("/", function () {
+$app->register_routes("test", function($app, $routes) {
+	$routes->get("/", function () {
 		return "hello\n";
 	});
 
-	$app->get("/world", function () {
-		return "hello world!\n";
+	$routes->get("/world", function () use ($app) {
+		return $app['twig']->render('index.twig', array('title' => 'Hello'));
 	});
 });
 ```

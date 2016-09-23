@@ -159,7 +159,7 @@ class SilMod extends Silex\Application
 	public function register_routes($name, $callback)
 	{
 		$subapp = $this['controllers_factory'];
-		$callback($subapp);
+		$callback($this, $subapp);
 		$this->mount("/".$name, $subapp);
 	}
 }
