@@ -101,6 +101,14 @@ $app->register_routes("test", function($app, $routes) {
 });
 ```
 
+#### `register_twig_path($name, $path)`
+
+If your module should use own [Twig](http://twig.sensiolabs.org/) templates, you should add the required paths with this function. The paths will be mounted in the namespace `$name`.
+
+```php
+$app->register_twig_path('test', __DIR__.'/views');
+```
+
 
 ## Contribute
 

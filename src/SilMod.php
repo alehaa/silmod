@@ -53,8 +53,8 @@ class SilMod extends Silex\Application
 
 
 		/* Initialize Twig service. */
-		$this->register(new Silex\Provider\TwigServiceProvider(),
-		                array('twig.path' => $this->twig_paths($options)));
+		$this->register(new Silex\Provider\TwigServiceProvider(), array(
+		                'twig.path' => 'themes/'.$options['theme'].'/views'));
 
 		/* Load all modules. */
 		$this->load_modules($options['modules.path']);
@@ -102,38 +102,6 @@ class SilMod extends Silex\Application
 	}
 
 
-	/** \brief Get all template paths for twig.
-	 *
-	 * \details This function gathers all paths to use for twig to find
-	 *  templates. It will use the module paths and defined options from the
-	 *  constructor and return an array of paths.
-	 *
-	 *
-	 * \param options Options passed from the constructor.
-	 *
-	 * \return Array of paths.
-	 */
-	private function twig_paths($options)
-	{
-		/* Add the template path as first path, so every view in the template
-		 * directory may override the module specific view. This may be used to
-		 * enhance a view for some themes. */
-		$paths = array('themes/'.$options['theme'].'/views');
-
-		/* Iterate over all module paths to append the module specific view
-		 * paths. */
-		foreach ($options['modules.path'] as $path) {
-			if (!is_dir($path))
-				throw new \LogicException("Path \'$path\' does not exist.");
-
-			foreach (glob($path.'{/*,}/views', GLOB_BRACE) as $p)
-				$paths[] = $p;
-		}
-
-		return $paths;
-	}
-
-
 	/** \brief Add module to global module array.
 	 *
 	 *
@@ -161,6 +129,21 @@ class SilMod extends Silex\Application
 		$subapp = $this['controllers_factory'];
 		$callback($this, $subapp);
 		$this->mount("/".$name, $subapp);
+	}
+
+
+	/** \brief Add \p path in twig namespace \p name.
+	 *
+	 * \details This function adds \p path to the list of template paths for
+	 *  twig. They may be used in the modules in a separate namespace \p name.
+	 *
+	 *
+	 * \param name Module name.
+	 * \param path The path to be added for twig.
+	 */
+	public function register_twig_path($name, $path)
+	{
+		$this['twig.loader.filesystem']->addPath($path, $name);
 	}
 }
 
