@@ -99,6 +99,20 @@ class sample implements ServiceProviderInterface, BootableProviderInterface
 $app->register(new sample());
 ```
 
+__Note__: Be careful to set routes and avoid different modules with the same route definition. E.g. you could [organize your controllers](http://silex.sensiolabs.org/doc/master/organizing_controllers.html) and mount them at `/<module name>`:
+
+```diff
+ public function register(Container $app)
+ {
+-   $app->get('/hello', function () {
++	$routes = $app['controllers_factory'];
++	$routes->get('/hello', function () {
+		return "world";
+	});
++	$app->mount('/sample', $routes);
+}
+```
+
 
 For additional functionality you may use additional methods of the SilMod class:
 
