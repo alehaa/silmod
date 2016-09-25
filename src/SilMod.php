@@ -24,111 +24,81 @@
 
 namespace SilMod;
 
-use Silex;
+use Silex\Application;
+use Silex\Provider\TwigServiceProvider;
 
 
-class SilMod extends Silex\Application
+class SilMod extends Application
 {
-	/** \brief Module array.
+	/** \brief Constructor.
 	 *
-	 * \details This variable stores all module names and their registration
-	 *  functions in a central array that may be used by all .
+	 * \details Creates a new SilMod object and initializes all modules.
+	 *
+	 *
+	 * \param options Option array.
 	 */
-	private $modules = array();
-
-
-	function __construct($options = array())
+	public function __construct(array $options = array())
 	{
+		/* Initialize Silex and register all required frameworks for the basic
+		 * SilMod infrastructure. */
 		parent::__construct();
 
-
-		/* Set default options. */
-		if (!isset($options['theme']))
-			$options['theme'] = 'default';
-
-		if (!isset($options['modules.path']))
-			$options['modules.path'] = array();
-		else if (is_string($options['modules.path']))
-			$options['modules.path'] = array($options['modules.path']);
+		$this->register(new TwigServiceProvider(), array('twig.options' =>
+		                isset($options['twig']) ? $options['twig'] : array()));
 
 
-		/* Initialize Twig service. */
-		$this->register(new Silex\Provider\TwigServiceProvider(), array(
-		                'twig.path' => 'themes/'.$options['theme'].'/views'));
-
-		/* Load all modules. */
-		$this->load_modules($options['modules.path']);
+		/* Register all modules. */
+		if (isset($options['modules']['path']))
+			$this->load_modules($this->toArray($options['modules']['path']));
 	}
 
 
-	/** \brief Load all modules in \p paths.
+	/** \brief Convert \p src to an array.
 	 *
-	 * \details Load all files with .php file extension in paths defined by
-	 *  \p paths as modules.
+	 * \details Some functions may require parameters as an array. This function
+	 *  will return either \p src unchanged, if it is an array, or an array with
+	 *  \p src as the only element inside of it.
 	 *
 	 *
-	 * \param paths String or array of strings pointing to paths containing all
-	 *  required modules.
+	 * \param src The data to be converted.
+	 *
+	 * \return The converted array.
 	 */
-	private function load_modules($paths)
+	protected function toArray($src)
 	{
-		/* If paths is a single string, convert it to an array with only one
-		 * element. This allows us to reuse the code below for any number of
-		 * paths defined. */
-		if (is_string($paths))
-			$paths = [$paths];
+		if (is_array($src))
+			return $src;
 
-		/* If paths is not an array, throw an invalid argument exception. */
-		if (!is_array($paths))
-			throw new \InvalidArgumentException('load_modules method only '.
-				'accepts string and array of string as argument.');
+		return array($src);
+	}
 
 
-		/* Load modules from all paths. The app variable will be used to provide
-		 * an interface that can be used by the loaded modules. */
+	/** \brief Load all files called autoload.php in \p paths as modules.
+	 *
+	 * \details This function iterates over all paths in \p paths and includes
+	 *  any file named 'autoload.php' in the paths or any of its subdirectories.
+	 *  Each module then will register itself by using the provided $app
+	 *  variable.
+	 *
+	 *
+	 * \param paths Array of paths containing all required modules.
+	 */
+	private function load_modules(array $paths)
+	{
+		/* Propagate the $this as the $app variable, so the modules may register
+		 * themselves. */
 		$app = $this;
+
 		foreach ($paths as $path) {
-			if (!is_dir($path))
-				throw new \LogicException('Path \'$path\' does not exist.');
+			/* Recurse into subdirectories. */
+			$sub = glob("$path/[^.]*", GLOB_ONLYDIR);
+			if (!empty($sub))
+				$this->load_modules($sub);
 
-			foreach (glob($path.'{/*,}/autoload.php', GLOB_BRACE) as $file)
-				require_once $file;
+			/* Load autoload.php if file is available. */
+			if (file_exists("$path/autoload.php"))
+				require_once "$path/autoload.php";
 		}
-
-		/* Call the registration complete callbacks. */
-		foreach ($this->modules as $module)
-			if ($module["callback"] != null)
-				$module["callback"]();
-	}
-
-
-	/** \brief Add module to global module array.
-	 *
-	 *
-	 * \param name Module name.
-	 * \param callback Registration callback function. Will be called after all
-	 *  modules have been loaded.
-	 */
-	public function register_module($name, $callback = null)
-	{
-		$this->modules[] = ["name" => $name, "callback" => $callback];
-	}
-
-
-	/** \brief Add routes to global silex routing.
-	 *
-	 * \details This function calls \p function, which will define routes. All
-	 *  defined routes will be mounted to the \p name subdomain.
-	 *
-	 *
-	 * \param name Module name.
-	 * \param callback Function to be called to register the modules routes.
-	 */
-	public function register_routes($name, $callback)
-	{
-		$subapp = $this['controllers_factory'];
-		$callback($this, $subapp);
-		$this->mount("/".$name, $subapp);
 	}
 
 

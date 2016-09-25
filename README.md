@@ -7,9 +7,9 @@ Module proxy for [Silex](http://silex.sensiolabs.org/).
 
 ## About
 
-To get an easy to configure and extensible interface for some modules, SilMod should help to be a proxy for all modules. Each module should be able to be developed independently but the result will be a uniform interface for all of your modules.
+To get an easy to configure and extensible interface for some modules, SilMod should be a proxy for all of your defined modules. Each module should be able to be developed independently but the result will be a uniform interface for all of your modules.
 
-The motivation for this was to merge different administration applications in a central application with the ability to extend the code for the users needs and decrease the maintenance and developement overhead. [Silex](http://silex.sensiolabs.org/) and other [Symfony](https://symfony.com/) components provide a nice interface to decrease the development overhead, but whenever you'd like to add a second module, you have to integrate it by hand in your code. SilMod provides a tiny wrapper arround Silex to load and integrate a set of modules.
+The motivation for this was to merge different administration applications into a central application with the ability to extend the code for the users needs and decrease the maintenance and developement overhead. [Silex](http://silex.sensiolabs.org/) and other [Symfony](https://symfony.com/) components provide a nice interface to decrease the development overhead, but whenever you'd like to add a second module, you have to integrate it by hand in your code. SilMod provides a tiny wrapper around Silex to load and integrate a set of modules around a basic infrastructure.
 
 
 ## Installation
@@ -39,10 +39,16 @@ A new SilMod application can be built as easy as a Silex application:
 require_once "vendor/autoload.php";
 
 $app = new SilMod\SilMod(array(
-	'theme' => 'default',    // the theme to be used
-	'modules.path' => array( // paths to your modules
-		'modules',
-		'externals/3rdparty'
+	'twig' => array(
+		'cache' => __DIR__.'/cache', // Twig options.
+		'debug' => true
+	),
+	'modules' => array(
+		'path' => 'modules'  // Your module directory.
+		// 'path' => array(  // May be defined as an array, too.
+		//   'modules',
+		//   'externals/3rdparty'
+		// )
 	)
 );
 
@@ -60,46 +66,41 @@ $app->run();
 
 ## Modules
 
-Each file called `autoload.php` in the module path or the first level subdirectories will be included. If your module path is `modules`, your directory structure may look like:
+Each file called `autoload.php` in the module path or any of its subdirectories will be included.
 
-```
-modules
-  A
-    autoload.php   # Will be included.
-  B
-    helper.php
-    autoload.php   # Will be included.
-composer.json
-index.php
-```
+Modules are classes in form of [Silex Providers](http://silex.sensiolabs.org/doc/master/providers.html). The `$app` variable will be provided before including the module, so each module has access to the SilMod instance and should register itself via `$app->register()`.
 
-The `$app` variable will be provided to access the SilMod instance. To register your modules capabilities to the core instance, you should use the following functions:
-
-#### `register_module($name, $callback)`
-
-This function must be called by each module once, to register the module. An additional callback function may be defined, which will be called after all modules have been loaded. This may be used to call functions defined by other modules (e.g. A is a backend for B).
+Provide the `register` method in your class to register e.g. new routes and the `boot` method to execute code after all modules have been registered.
 
 ```php
-$app->register_module("test", function () {
-	echo "Callback called\n";
-});
+use Pimple\Container;
+use Pimple\ServiceProviderInterface;
+use Silex\Application;
+use Silex\Api\BootableProviderInterface;
+
+
+class sample implements ServiceProviderInterface, BootableProviderInterface
+{
+	public function register(Container $app)
+	{
+		$app->get('/hello', function () {
+			return "world";
+		});
+	}
+
+	public function boot(Application $app)
+	{
+		if (isset($app['foo']))
+			$app['bar'] = 'Wello World';
+	}
+}
+
+
+$app->register(new sample());
 ```
 
-#### `register_routes($name, $callback)`
 
-Add your Silex routes with this function as you would do without. All routes will be mounted in `/$name`.
-
-```php
-$app->register_routes("test", function($app, $routes) {
-	$routes->get("/", function () {
-		return "hello\n";
-	});
-
-	$routes->get("/world", function () use ($app) {
-		return $app['twig']->render('index.twig', array('title' => 'Hello'));
-	});
-});
-```
+For additional functionality you may use additional methods of the SilMod class:
 
 #### `register_twig_path($name, $path)`
 
