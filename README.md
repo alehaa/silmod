@@ -70,21 +70,23 @@ Each file called `autoload.php` in the module path or any of its subdirectories 
 
 Modules are classes in form of [Silex Providers](http://silex.sensiolabs.org/doc/master/providers.html). The `$app` variable will be provided before including the module, so each module has access to the SilMod instance and should register itself via `$app->register()`.
 
-Provide the `register` method in your class to register e.g. new routes and the `boot` method to execute code after all modules have been registered.
+Provide the `register` method in your class to register some functionality, the `boot` method to execute code after all modules have been registered, or the `connect` method to connect your controller. Find out more about that in the [Silex Documentation](http://silex.sensiolabs.org/doc/master/providers.html).
 
 ```php
 use Pimple\Container;
 use Pimple\ServiceProviderInterface;
 use Silex\Application;
 use Silex\Api\BootableProviderInterface;
+use Silex\Api\ControllerProviderInterface;
 
 
-class sample implements ServiceProviderInterface, BootableProviderInterface
+class sample implements BootableProviderInterface, ControllerProviderInterface,
+                        ServiceProviderInterface
 {
 	public function register(Container $app)
 	{
-		$app->get('/hello', function () {
-			return "world";
+		$app['hello'] = $app->protect(function () {
+			return 'world';
 		});
 	}
 
@@ -93,10 +95,22 @@ class sample implements ServiceProviderInterface, BootableProviderInterface
 		if (isset($app['foo']))
 			$app['bar'] = 'Wello World';
 	}
+
+	public function connect(Application $app)
+	{
+		$controller = $app['controllers_factory'];
+
+		$controllers->get('/', function (Application $app) {
+			return 'Hello World!';
+		});
+
+		return $controllers;
+	}
 }
 
-
-$app->register(new sample());
+$sample = new sample();
+$app->register($sample);
+$app->mount('/hello', $sample);
 ```
 
 __Note__: Be careful to set routes and avoid different modules with the same route definition. E.g. you could [organize your controllers](http://silex.sensiolabs.org/doc/master/organizing_controllers.html) and mount them at `/<module name>`:
