@@ -111,7 +111,7 @@ class SilMod extends Application
 	 * \param name Module name.
 	 * \param path The path to be added for twig.
 	 */
-	public function register_twig_path($name, $path)
+	public function register_twig_path(string $name, string $path)
 	{
 		$this['twig.loader.filesystem']->addPath($path, $name);
 	}
