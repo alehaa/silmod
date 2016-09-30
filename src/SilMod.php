@@ -24,8 +24,10 @@
 
 namespace SilMod;
 
+use Exception;
 use Silex\Application;
 use Silex\Provider\TwigServiceProvider;
+use Symfony\Component\HttpFoundation\Request;
 
 
 class SilMod extends Application
@@ -43,6 +45,8 @@ class SilMod extends Application
 		 * SilMod infrastructure. */
 		parent::__construct();
 
+		$this->error($this->json_error_handler());
+
 		$this->register(new TwigServiceProvider(), array('twig.options' =>
 		                isset($options['twig']) ? $options['twig'] : array()));
 
@@ -50,6 +54,31 @@ class SilMod extends Application
 		/* Register all modules. */
 		if (isset($options['modules']['path']))
 			$this->load_modules($this->toArray($options['modules']['path']));
+	}
+
+
+	/** \brief Return a JSON error handler for Silex.
+	 *
+	 * \details Usually the Silex exception handler will return a HTML page with
+	 *  the error message and a backtrace, if debug options are enabled. This
+	 *  function returns an error handler which will return the exceptions error
+	 *  message as JSON, so it may be processed by the client (e.g. for API
+	 *  usage). If the client does not accept JSON, the error handler will do
+	 *  nothing and the default error handler will return the error message as
+	 *  HTML.
+	 *
+	 *
+	 * \return The JSON error handler.
+	 */
+	private function json_error_handler() {
+		return function (Exception $e, Request $request, $code) {
+			$accept = $request->headers->get('Accept');
+			if (strpos($accept, 'json') !== false)
+				return $this->json(array(
+					'status' => 'error',
+					'message' => str_replace('"', '', $e->getMessage())
+				), $code);
+		};
 	}
 
 
