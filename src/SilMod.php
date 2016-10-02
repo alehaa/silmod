@@ -27,6 +27,7 @@ namespace SilMod;
 use Exception;
 use Silex\Application;
 use Silex\Provider\TwigServiceProvider;
+use Symfony\Component\Debug\ErrorHandler;
 use Symfony\Component\HttpFoundation\Request;
 
 
@@ -41,6 +42,12 @@ class SilMod extends Application
 	 */
 	public function __construct(array $options = array())
 	{
+		/* Register the Silex error handler to convert errors into exceptions.
+		 * This should help to code the modules in an easy way so you have to
+		 * take care about exceptions only and not exceptions AND errors. */
+		ErrorHandler::register();
+
+
 		/* Initialize Silex and register all required frameworks for the basic
 		 * SilMod infrastructure. */
 		parent::__construct();
